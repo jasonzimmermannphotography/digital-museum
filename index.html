@@ -78,7 +78,7 @@
       box-sizing: border-box;
       transition: opacity 0.3s ease;
       opacity: 0;
-      overflow: auto;
+      overflow: hidden;
     }
     #lightbox.show {
       opacity: 1;
@@ -89,11 +89,12 @@
       margin-bottom: 16px;
       cursor: zoom-in;
       transition: transform 0.4s ease, box-shadow 0.3s ease;
-      border-radius: 8px;
+      border-radius: 0px;
       box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+      position: relative;
+      transform: scale(1);
     }
     #lightbox img.zoomed {
-      transform: scale(2.2);
       cursor: zoom-out;
     }
     #lightbox .caption {
@@ -102,6 +103,27 @@
       text-align: center;
       margin-bottom: 12px;
       font-weight: 500;
+    }
+
+    /* Mobile-specific styles */
+    @media (max-width: 768px) {
+      .grid-container {
+        height: auto;
+        overflow-x: hidden;
+        overflow-y: auto;
+        flex-wrap: wrap;
+        white-space: normal;
+      }
+      .grid-row {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .grid img {
+        max-width: 90%;
+        height: auto;
+        margin-bottom: 16px;
+      }
     }
   </style>
 </head>
@@ -129,18 +151,27 @@
       lightbox.style.display = 'flex';
       setTimeout(() => lightbox.classList.add('show'), 10);
       updateLightboxImage();
-      lightboxImg.classList.remove('zoomed');
     }
 
     function updateLightboxImage() {
       const img = galleryImages[currentIndex];
       lightboxImg.src = img.src;
       lightboxCaption.textContent = img.dataset.caption;
+      lightboxImg.style.transform = 'scale(1)';
+      lightboxImg.classList.remove('zoomed');
+      lightboxImg.style.cursor = 'zoom-in';
     }
 
-    lightboxImg.addEventListener('click', (e) => {
-      e.stopPropagation();
-      lightboxImg.classList.toggle('zoomed');
+    lightboxImg.addEventListener('click', () => {
+      if (!lightboxImg.classList.contains('zoomed')) {
+        lightboxImg.style.transform = 'scale(2)';
+        lightboxImg.classList.add('zoomed');
+        lightboxImg.style.cursor = 'zoom-out';
+      } else {
+        lightboxImg.style.transform = 'scale(1)';
+        lightboxImg.classList.remove('zoomed');
+        lightboxImg.style.cursor = 'zoom-in';
+      }
     });
 
     lightbox.addEventListener('click', (e) => {
@@ -178,9 +209,7 @@
       try {
         const response = await fetch(apiUrl);
         let files = await response.json();
-
         files.sort((a, b) => a.name.localeCompare(b.name));
-
         const gallery = document.getElementById('gallery');
         gallery.innerHTML = '';
         let row;
