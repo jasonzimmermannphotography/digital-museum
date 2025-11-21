@@ -36,21 +36,27 @@
       height: calc(100vh - 120px);
       box-sizing: border-box;
       scroll-behavior: smooth;
+      display: flex;
+      flex-wrap: nowrap;
     }
     .grid {
-      display: inline-flex;
+      display: flex;
+      flex-direction: column;
       gap: var(--gap);
-      align-items: flex-start;
+    }
+    .grid-row {
+      display: flex;
+      gap: var(--gap);
+      flex-shrink: 0;
     }
     .grid img {
       max-width: 640px;
       height: auto;
       object-fit: contain;
-      border-radius: 6px;
+      border-radius:1px;
       box-shadow: 0 6px 15px rgba(0,0,0,0.2);
       cursor: pointer;
       transition: transform 0.3s, box-shadow 0.3s;
-      flex-shrink: 0;
     }
     .grid img:hover {
       transform: scale(1.05);
@@ -132,10 +138,6 @@
       lightboxCaption.textContent = img.dataset.caption;
     }
 
-    document.querySelectorAll('.grid img').forEach(img => {
-      img.addEventListener('click', () => openLightbox(img));
-    });
-
     lightboxImg.addEventListener('click', (e) => {
       e.stopPropagation();
       lightboxImg.classList.toggle('zoomed');
@@ -181,8 +183,14 @@
 
         const gallery = document.getElementById('gallery');
         gallery.innerHTML = '';
-        files.forEach(file => {
+        let row;
+        files.forEach((file, i) => {
           if (file.type === 'file') {
+            if (i % Math.ceil(files.length / 2) === 0) {
+              row = document.createElement('div');
+              row.className = 'grid-row';
+              gallery.appendChild(row);
+            }
             const img = document.createElement('img');
             img.src = file.download_url;
             img.alt = file.name;
@@ -191,7 +199,7 @@
             img.style.width = 'auto';
             img.style.height = '440px';
             img.addEventListener('click', () => openLightbox(img));
-            gallery.appendChild(img);
+            row.appendChild(img);
           }
         });
       } catch (err) {
