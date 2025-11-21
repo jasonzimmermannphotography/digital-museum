@@ -107,10 +107,13 @@
 
     /* Mobile-specific styles */
     @media (max-width: 768px) {
+      body {
+        overflow-y: auto;
+      }
       .grid-container {
         height: auto;
         overflow-x: hidden;
-        overflow-y: auto;
+        overflow-y: visible;
         flex-wrap: wrap;
         white-space: normal;
       }
@@ -198,8 +201,10 @@
 
     const galleryContainer = document.querySelector('.grid-container');
     galleryContainer.addEventListener('wheel', function(e) {
-      e.preventDefault();
-      galleryContainer.scrollBy({ left: e.deltaY * 2, behavior: 'smooth' });
+      if (window.innerWidth > 768) {
+        e.preventDefault();
+        galleryContainer.scrollBy({ left: e.deltaY * 2, behavior: 'smooth' });
+      }
     }, { passive: false });
 
     async function loadGallery() {
