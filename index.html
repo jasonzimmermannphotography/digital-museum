@@ -30,15 +30,16 @@
     }
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      grid-template-columns: repeat(3, 1fr);
       gap: var(--gap);
       padding: var(--padding);
       max-width: var(--max-width);
       margin: auto;
     }
     .grid img {
-      width: 100%;
-      height: 100%;
+      width: calc(100% - 40px);
+      height: calc(100% - 40px);
+      padding: 20px;
       object-fit: cover;
       border-radius: 0px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
@@ -49,7 +50,6 @@
     .grid img:hover {
       transform: scale(1.02);
     }
-    /* Lightbox styles */
     #lightbox {
       position: fixed;
       top: 0;
@@ -66,15 +66,22 @@
       box-sizing: border-box;
       transition: opacity 0.3s ease;
       opacity: 0;
+      overflow: auto;
     }
     #lightbox.show {
       opacity: 1;
     }
     #lightbox img {
       max-width: 90%;
-      max-height: 80%;
+      max-height: 70%;
       margin-bottom: 15px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      cursor: zoom-in;
+      transition: transform 0.3s ease;
+    }
+    #lightbox img.zoomed {
+      transform: scale(2);
+      cursor: zoom-out;
     }
     #lightbox .caption {
       color: #000;
@@ -87,43 +94,122 @@
       white-space: pre-wrap;
       box-shadow: none;
       font-family: 'Roboto Condensed', sans-serif;
+      margin-bottom: 10px;
+    }
+    #requestPrintBtn {
+      padding: 10px 20px;
+      font-size: 1rem;
+      border: 1px solid #222;
+      border-radius: 5px;
+      background-color: #fafafa;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    #requestPrintBtn:hover {
+      background-color: #eee;
     }
   </style>
 </head>
 <body>
   <header>Photography by Jason Zimmermann</header>
-  <div class="grid">
-    <img src="https://i.imgur.com/RWKFN49.jpeg" alt="Photo 1" data-caption="Seneca Lake, NY 11/10/25&#10;Canon R6 70-200mm F/2.8" loading="lazy" />
-    <img src="https://i.imgur.com/rvyff6E.jpeg" alt="Photo 2" data-caption="Photo 2" loading="lazy" />
-    <img src="https://i.imgur.com/xFmc6bo.jpeg" alt="Photo 3" data-caption="Photo 3" loading="lazy" />
-    <img src="https://i.imgur.com/vNBlc5a.jpeg" alt="Photo 4" data-caption="Photo 4" loading="lazy" />
-    <img src="https://i.imgur.com/iQfkANp.jpeg" alt="Photo 5" data-caption="Photo 5" loading="lazy" />
-    <img src="https://i.imgur.com/s4SfyYP.jpeg" alt="Photo 6" data-caption="Photo 6" loading="lazy" />
-    <img src="https://i.imgur.com/FWLxlnp.jpeg" alt="Photo 7" data-caption="Photo 7" loading="lazy" />
-    <img src="https://i.imgur.com/1i9vobK.jpeg" alt="Photo 8" data-caption="Photo 8" loading="lazy" />
-    <img src="https://i.imgur.com/uZ7PQhX.jpeg" alt="Photo 9" data-caption="Photo 9" loading="lazy" />
-    <img src="https://i.imgur.com/tUSW2i3.jpeg" alt="Photo 10" data-caption="Photo 10" loading="lazy" />
-    <img src="https://i.imgur.com/z3ZYJ7k.jpeg" alt="Photo 11" data-caption="Photo 11" loading="lazy" />
-  </div>
+  <div class="grid" id="gallery"></div>
 
-  <div id="lightbox" onclick="this.style.display='none'">
+  <div id="lightbox">
     <img src="" alt="Full Image" />
     <div class="caption"></div>
+    <button id="requestPrintBtn">Request Print</button>
   </div>
 
   <script>
     const lightbox = document.getElementById('lightbox');
     const lightboxImg = lightbox.querySelector('img');
     const lightboxCaption = lightbox.querySelector('.caption');
+    const requestPrintBtn = document.getElementById('requestPrintBtn');
+    let galleryImages = [];
+    let currentIndex = 0;
+
+    function openLightbox(img) {
+      galleryImages = Array.from(document.querySelectorAll('.grid img'));
+      currentIndex = galleryImages.indexOf(img);
+      lightbox.style.display = 'flex';
+      setTimeout(() => lightbox.classList.add('show'), 10);
+      updateLightboxImage();
+      lightboxImg.classList.remove('zoomed');
+    }
+
+    function updateLightboxImage() {
+      const img = galleryImages[currentIndex];
+      lightboxImg.src = img.src;
+      lightboxCaption.innerHTML = img.dataset.caption;
+    }
 
     document.querySelectorAll('.grid img').forEach(img => {
-      img.addEventListener('click', () => {
-        lightbox.style.display = 'flex';
-        setTimeout(() => lightbox.classList.add('show'), 10);
-        lightboxImg.src = img.src;
-        lightboxCaption.innerHTML = img.getAttribute('data-caption');
-      });
+      img.addEventListener('click', () => openLightbox(img));
     });
+
+    lightboxImg.addEventListener('click', (e) => {
+      e.stopPropagation();
+      lightboxImg.classList.toggle('zoomed');
+    });
+
+    lightbox.addEventListener('click', () => {
+      lightbox.classList.remove('show');
+      setTimeout(() => lightbox.style.display = 'none', 300);
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (lightbox.style.display === 'flex') {
+        if (e.key === 'ArrowRight') {
+          currentIndex = (currentIndex + 1) % galleryImages.length;
+          updateLightboxImage();
+        } else if (e.key === 'ArrowLeft') {
+          currentIndex = (currentIndex - 1 + galleryImages.length) % galleryImages.length;
+          updateLightboxImage();
+        } else if (e.key === 'Escape') {
+          lightbox.classList.remove('show');
+          setTimeout(() => lightbox.style.display = 'none', 300);
+        }
+      }
+    });
+
+    requestPrintBtn.addEventListener('click', () => {
+      const img = galleryImages[currentIndex];
+      const imageName = img.dataset.caption;
+      const email = 'jasonzimmermannphotography@gmail.com';
+      const subject = encodeURIComponent(`Print request: ${imageName}`);
+      const body = encodeURIComponent(`Hello,\n\nI would like to request a print of the following image: ${imageName}.\n\nThank you.`);
+      window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+    });
+
+    async function loadGallery() {
+      const repo = "jasonzimmermannphotography/digital-museum";
+      const path = "images";
+      const apiUrl = `https://api.github.com/repos/${repo}/contents/${path}`;
+
+      try {
+        const response = await fetch(apiUrl);
+        const files = await response.json();
+
+        const gallery = document.getElementById('gallery');
+        gallery.innerHTML = "";
+
+        files.forEach(file => {
+          if (file.type === "file") {
+            const img = document.createElement("img");
+            img.src = file.download_url;
+            img.alt = file.name;
+            img.loading = "lazy";
+            img.dataset.caption = file.name;
+            img.addEventListener('click', () => openLightbox(img));
+            gallery.appendChild(img);
+          }
+        });
+      } catch (err) {
+        console.error("Error loading gallery:", err);
+      }
+    }
+
+    loadGallery();
   </script>
 </body>
 </html>
