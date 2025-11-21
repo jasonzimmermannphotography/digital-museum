@@ -29,14 +29,14 @@
       color: #111;
     }
     .grid-container {
+      display: flex;
       overflow-x: auto;
       overflow-y: hidden;
-      white-space: nowrap;
+      gap: var(--gap);
       padding: var(--padding);
-      height: calc(100vh - 120px);
       box-sizing: border-box;
       scroll-behavior: smooth;
-      display: flex;
+      height: calc(100vh - 120px);
       flex-wrap: nowrap;
     }
     .grid {
@@ -44,16 +44,15 @@
       flex-direction: column;
       gap: var(--gap);
     }
-    .grid-row {
+    .row {
       display: flex;
       gap: var(--gap);
-      flex-shrink: 0;
     }
     .grid img {
-      max-width: 640px;
-      height: auto;
+      height: 220px;
+      width: auto;
       object-fit: contain;
-      border-radius:1px;
+      border-radius: 1px;
       box-shadow: 0 6px 15px rgba(0,0,0,0.2);
       cursor: pointer;
       transition: transform 0.3s, box-shadow 0.3s;
@@ -105,7 +104,6 @@
       font-weight: 500;
     }
 
-    /* Mobile-specific styles */
     @media (max-width: 768px) {
       body {
         overflow-y: auto;
@@ -113,19 +111,10 @@
       .grid-container {
         height: auto;
         overflow-x: hidden;
-        overflow-y: visible;
-        flex-wrap: wrap;
-        white-space: normal;
-      }
-      .grid-row {
-        flex-direction: row;
-        flex-wrap: wrap;
-        justify-content: center;
       }
       .grid img {
-        max-width: 90%;
+        width: 90%;
         height: auto;
-        margin-bottom: 16px;
       }
       #lightbox img {
         max-width: 100%;
@@ -140,7 +129,7 @@
 </head>
 <body>
   <header>Birds of Photography<br>By Jason Zimmermann</header>
-  <div class="grid-container">
+  <div class="grid-container" id="carousel-container">
     <div class="grid" id="gallery"></div>
   </div>
 
@@ -211,7 +200,7 @@
     galleryContainer.addEventListener('wheel', function(e) {
       if (window.innerWidth > 768) {
         e.preventDefault();
-        galleryContainer.scrollBy({ left: e.deltaY * 2, behavior: 'smooth' });
+        galleryContainer.scrollLeft += e.deltaY * 2;
       }
     }, { passive: false });
 
@@ -225,25 +214,30 @@
         files.sort((a, b) => a.name.localeCompare(b.name));
         const gallery = document.getElementById('gallery');
         gallery.innerHTML = '';
-        let row;
-        files.forEach((file, i) => {
+
+        const row1 = document.createElement('div');
+        const row2 = document.createElement('div');
+        row1.className = 'row';
+        row2.className = 'row';
+
+        const repeatedFiles = files.concat(files, files); // repeat 3x for infinite scroll feeling
+
+        repeatedFiles.forEach((file, index) => {
           if (file.type === 'file') {
-            if (i % Math.ceil(files.length / 2) === 0) {
-              row = document.createElement('div');
-              row.className = 'grid-row';
-              gallery.appendChild(row);
-            }
             const img = document.createElement('img');
             img.src = file.download_url;
             img.alt = file.name;
             img.loading = 'lazy';
             img.dataset.caption = file.name;
-            img.style.width = 'auto';
-            img.style.height = '440px';
             img.addEventListener('click', () => openLightbox(img));
-            row.appendChild(img);
+            if (index % 2 === 0) row1.appendChild(img);
+            else row2.appendChild(img);
           }
         });
+
+        gallery.appendChild(row1);
+        gallery.appendChild(row2);
+
       } catch (err) {
         console.error('Error loading gallery:', err);
       }
