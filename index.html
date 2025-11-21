@@ -17,9 +17,7 @@
       font-family: 'Roboto Condensed', sans-serif;
       background: var(--body-bg);
       color: var(--body-color);
-      overflow-x: auto;
-      overflow-y: hidden;
-      white-space: nowrap;
+      overflow: hidden;
     }
     header {
       padding: 2rem;
@@ -27,16 +25,21 @@
       font-size: 2.2rem;
       font-family: 'Caveat', cursive;
       font-weight: 400;
-      display: block;
-      width: 100%;
       line-height: 1.2;
       color: #111;
+    }
+    .grid-container {
+      overflow-x: auto;
+      overflow-y: hidden;
+      white-space: nowrap;
+      padding: var(--padding);
+      height: calc(100vh - 120px);
+      box-sizing: border-box;
+      scroll-behavior: smooth;
     }
     .grid {
       display: inline-flex;
       gap: var(--gap);
-      padding: var(--padding);
-      scroll-behavior: smooth;
       align-items: flex-start;
     }
     .grid img {
@@ -98,7 +101,9 @@
 </head>
 <body>
   <header>Birds of Photography<br>By Jason Zimmermann</header>
-  <div class="grid" id="gallery"></div>
+  <div class="grid-container">
+    <div class="grid" id="gallery"></div>
+  </div>
 
   <div id="lightbox">
     <img src="" alt="Full Image" />
@@ -158,12 +163,10 @@
       }
     });
 
-    const gallery = document.getElementById('gallery');
-    gallery.addEventListener('wheel', function(e) {
-      if (e.deltaY !== 0) {
-        e.preventDefault();
-        gallery.scrollLeft += e.deltaY * 1.5;
-      }
+    const galleryContainer = document.querySelector('.grid-container');
+    galleryContainer.addEventListener('wheel', function(e) {
+      e.preventDefault();
+      galleryContainer.scrollBy({ left: e.deltaY * 2, behavior: 'smooth' });
     }, { passive: false });
 
     async function loadGallery() {
@@ -176,6 +179,7 @@
 
         files.sort((a, b) => a.name.localeCompare(b.name));
 
+        const gallery = document.getElementById('gallery');
         gallery.innerHTML = '';
         files.forEach(file => {
           if (file.type === 'file') {
