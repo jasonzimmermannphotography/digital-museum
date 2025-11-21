@@ -4,51 +4,54 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Photography by Jason Zimmermann</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playwrite+NZ+Guides&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&family=Caveat:wght@400..700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --gap: 16px;
+      --gap: 32px;
       --padding: 20px;
-      --max-width: 1400px;
-      --body-bg: #fafafa;
+      --body-bg: #f5f5f5;
       --body-color: #222;
     }
     body {
       margin: 0;
-      font-family: 'Times New Roman', Times, serif;
+      font-family: 'Roboto Condensed', sans-serif;
       background: var(--body-bg);
       color: var(--body-color);
+      overflow-x: auto;
+      overflow-y: hidden;
+      white-space: nowrap;
     }
     header {
       padding: 2rem;
       text-align: center;
-      font-size: 2.5rem;
-      font-weight: 400;
+      font-size: 2.2rem;
       font-family: 'Caveat', cursive;
+      font-weight: 400;
+      display: block;
+      width: 100%;
+      line-height: 1.2;
+      color: #111;
     }
     .grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      display: inline-flex;
       gap: var(--gap);
       padding: var(--padding);
-      max-width: var(--max-width);
-      margin: auto;
+      scroll-behavior: smooth;
+      align-items: flex-start;
     }
     .grid img {
-      width: calc(100% - 40px);
-      height: calc(100% - 40px);
-      padding: 20px;
-      object-fit: cover;
-      border-radius: 0px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      max-width: 640px;
+      height: auto;
+      object-fit: contain;
+      border-radius: 6px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.2);
       cursor: pointer;
-      transition: transform 0.2s;
-      loading: lazy;
+      transition: transform 0.3s, box-shadow 0.3s;
+      flex-shrink: 0;
     }
     .grid img:hover {
-      transform: scale(1.02);
+      transform: scale(1.05);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
     }
     #lightbox {
       position: fixed;
@@ -72,59 +75,40 @@
       opacity: 1;
     }
     #lightbox img {
-      max-width: 90%;
-      max-height: 70%;
-      margin-bottom: 15px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      max-width: 85%;
+      max-height: 75%;
+      margin-bottom: 16px;
       cursor: zoom-in;
-      transition: transform 0.3s ease;
+      transition: transform 0.4s ease, box-shadow 0.3s ease;
+      border-radius: 8px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.25);
     }
     #lightbox img.zoomed {
-      transform: scale(2);
+      transform: scale(2.2);
       cursor: zoom-out;
     }
     #lightbox .caption {
-      color: #000;
-      background: transparent;
-      padding: 10px 20px;
-      border-radius: 5px;
+      color: #111;
+      font-size: 1.1rem;
       text-align: center;
-      max-width: 90%;
-      font-size: 1rem;
-      white-space: pre-wrap;
-      box-shadow: none;
-      font-family: 'Roboto Condensed', sans-serif;
-      margin-bottom: 10px;
-    }
-    #requestPrintBtn {
-      padding: 10px 20px;
-      font-size: 1rem;
-      border: 1px solid #222;
-      border-radius: 5px;
-      background-color: #fafafa;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    #requestPrintBtn:hover {
-      background-color: #eee;
+      margin-bottom: 12px;
+      font-weight: 500;
     }
   </style>
 </head>
 <body>
-  <header>Photography by Jason Zimmermann</header>
+  <header>Birds of Photography<br>By Jason Zimmermann</header>
   <div class="grid" id="gallery"></div>
 
   <div id="lightbox">
     <img src="" alt="Full Image" />
     <div class="caption"></div>
-    <button id="requestPrintBtn">Request Print</button>
   </div>
 
   <script>
     const lightbox = document.getElementById('lightbox');
     const lightboxImg = lightbox.querySelector('img');
     const lightboxCaption = lightbox.querySelector('.caption');
-    const requestPrintBtn = document.getElementById('requestPrintBtn');
     let galleryImages = [];
     let currentIndex = 0;
 
@@ -140,7 +124,7 @@
     function updateLightboxImage() {
       const img = galleryImages[currentIndex];
       lightboxImg.src = img.src;
-      lightboxCaption.innerHTML = img.dataset.caption;
+      lightboxCaption.textContent = img.dataset.caption;
     }
 
     document.querySelectorAll('.grid img').forEach(img => {
@@ -153,7 +137,7 @@
     });
 
     lightbox.addEventListener('click', (e) => {
-      if (e.target !== requestPrintBtn && e.target !== lightboxImg) {
+      if (e.target !== lightboxImg) {
         lightbox.classList.remove('show');
         setTimeout(() => lightbox.style.display = 'none', 300);
       }
@@ -174,41 +158,40 @@
       }
     });
 
-    requestPrintBtn.addEventListener('click', (e) => {
-      e.stopPropagation(); // Prevent lightbox from closing
-      const img = galleryImages[currentIndex];
-      const imageName = img.dataset.caption;
-      const email = 'jasonzimmermannphotography@gmail.com';
-      const subject = encodeURIComponent(`Print request: ${imageName}`);
-      const body = encodeURIComponent(`Hello,\n\nI would like to request a print of the following image: ${imageName}.\n\nThank you.`);
-      window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
-    });
+    const gallery = document.getElementById('gallery');
+    gallery.addEventListener('wheel', function(e) {
+      if (e.deltaY !== 0) {
+        e.preventDefault();
+        gallery.scrollLeft += e.deltaY * 1.5;
+      }
+    }, { passive: false });
 
     async function loadGallery() {
       const repo = "jasonzimmermannphotography/digital-museum";
       const path = "images";
       const apiUrl = `https://api.github.com/repos/${repo}/contents/${path}`;
-
       try {
         const response = await fetch(apiUrl);
-        const files = await response.json();
+        let files = await response.json();
 
-        const gallery = document.getElementById('gallery');
-        gallery.innerHTML = "";
+        files.sort((a, b) => a.name.localeCompare(b.name));
 
+        gallery.innerHTML = '';
         files.forEach(file => {
-          if (file.type === "file") {
-            const img = document.createElement("img");
+          if (file.type === 'file') {
+            const img = document.createElement('img');
             img.src = file.download_url;
             img.alt = file.name;
-            img.loading = "lazy";
+            img.loading = 'lazy';
             img.dataset.caption = file.name;
+            img.style.width = 'auto';
+            img.style.height = '440px';
             img.addEventListener('click', () => openLightbox(img));
             gallery.appendChild(img);
           }
         });
       } catch (err) {
-        console.error("Error loading gallery:", err);
+        console.error('Error loading gallery:', err);
       }
     }
 
