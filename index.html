@@ -152,9 +152,11 @@
       lightboxImg.classList.toggle('zoomed');
     });
 
-    lightbox.addEventListener('click', () => {
-      lightbox.classList.remove('show');
-      setTimeout(() => lightbox.style.display = 'none', 300);
+    lightbox.addEventListener('click', (e) => {
+      if (e.target !== requestPrintBtn && e.target !== lightboxImg) {
+        lightbox.classList.remove('show');
+        setTimeout(() => lightbox.style.display = 'none', 300);
+      }
     });
 
     document.addEventListener('keydown', (e) => {
@@ -172,7 +174,8 @@
       }
     });
 
-    requestPrintBtn.addEventListener('click', () => {
+    requestPrintBtn.addEventListener('click', (e) => {
+      e.stopPropagation(); // Prevent lightbox from closing
       const img = galleryImages[currentIndex];
       const imageName = img.dataset.caption;
       const email = 'jasonzimmermannphotography@gmail.com';
